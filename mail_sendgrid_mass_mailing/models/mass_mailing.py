@@ -27,18 +27,18 @@ class MassMailing(models.Model):
 
     @api.depends('email_template_id')
     def _compute_sendgrid_view(self):
-        for wizard in self:
-            template = wizard.email_template_id.with_context(
-                lang=wizard.lang.code or self.env.context['lang'])
+        for mass_mailing in self:
+            template = mass_mailing.email_template_id.with_context(
+                lang=mass_mailing.lang.code or self.env.context['lang'])
             sendgrid_template = template.sendgrid_localized_template
             if sendgrid_template:
-                res_id = self.env[wizard.mailing_model].search(safe_eval(
-                    wizard.mailing_domain), limit=1).id
+                res_id = self.env[mass_mailing.mailing_model_real].search(safe_eval(
+                    mass_mailing.mailing_domain), limit=1).id
                 if res_id:
-                    body = template.render_template(
+                    body = template._render_template(
                         template.body_html, template.model, [res_id],
                         post_process=True)[res_id]
-                    wizard.body_sendgrid = \
+                    mass_mailing.body_sendgrid = \
                         sendgrid_template.html_content.replace('<%body%>',
                                                                body)
 
