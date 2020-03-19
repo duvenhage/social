@@ -65,7 +65,7 @@ class EmailTemplate(models.Model):
             lambda s: s.lang == self.env.context.get('lang', 'en_US'))
         substitution_vals = defaultdict(list)
         for substitution in substitutions:
-            values = self.render_template(
+            values = self._render_template(
                 substitution.value, self.model, res_ids)
             for res_id in res_ids:
                 substitution_vals[res_id].append((0, 0, {
