@@ -1,5 +1,7 @@
 # Copyright 2016-2017 Compassion CH (http://www.compassion.ch)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+from sendgrid import SubscriptionText, SubscriptionHtml, SubscriptionSubstitutionTag
+
 from odoo import models
 import logging
 
@@ -42,12 +44,12 @@ class MailMail(models.Model):
         if self.mailing_id.enable_unsubscribe:
             sub_settings = SubscriptionTracking(
                 enable=True,
-                text=self.mailing_id.unsubscribe_text,
-                html=self.mailing_id.unsubscribe_text,
+                text=SubscriptionText(self.mailing_id.unsubscribe_text),
+                html=SubscriptionHtml(self.mailing_id.unsubscribe_text),
             )
             if self.mailing_id.unsubscribe_tag:
                 sub_settings.substitution_tag = \
-                    self.mailing_id.unsubscribe_tag
+                    SubscriptionSubstitutionTag(self.mailing_id.unsubscribe_tag)
             tracking_settings.subscription_tracking = sub_settings
         else:
             tracking_settings.subscription_tracking = SubscriptionTracking(
