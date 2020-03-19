@@ -19,7 +19,7 @@ class TestMassMailing(models.TransientModel):
             # Send with SendGrid (and use E-mail Template)
             sendgrid_template = template.sendgrid_localized_template
             res_id = self.env.user.partner_id.id
-            body = template.render_template(
+            body = template._render_template(
                 template.body_html, template.model, [res_id],
                 post_process=True)[res_id]
             test_emails = tools.email_split(self.email_to)
