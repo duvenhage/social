@@ -16,7 +16,7 @@ class EmailComposeMessage(models.TransientModel):
             template = wizard.template_id
             sendgrid_template = template.sendgrid_localized_template
             res_id = self.env.context.get('active_id')
-            render_body = self.render_template(
+            render_body = self.env['mail.template']._render_template(
                 wizard.body, wizard.model, [res_id], post_process=True)[res_id]
             if sendgrid_template and wizard.body:
                 wizard.body_sendgrid = sendgrid_template.html_content.replace(
