@@ -1,4 +1,4 @@
-# Copyright 2016-2017 Compassion CH (http://www.compassion.ch)
+# Copyright 2016-2020 Compassion CH (http://www.compassion.ch)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 import logging
 from datetime import datetime
@@ -29,7 +29,7 @@ class MailTrackingEmail(models.Model):
 
     @property
     def _sendgrid_mandatory_fields(self):
-        return ('event', 'timestamp', 'odoo_id', 'odoo_db')
+        return 'event', 'timestamp', 'odoo_id', 'odoo_db'
 
     @property
     def _sendgrid_event_type_mapping(self):
@@ -138,6 +138,14 @@ class MailTrackingEmail(models.Model):
             request.jsonrequest, list)
         if res == 'NONE' and is_json:
             for event in request.jsonrequest:
+                # We update mail tracking emails with sendgrid statuses
+                mail_tracking = self.env["mail.tracking.email"].search([(
+                    "mail_message_id.message_id", "=", event["odoo_id"]
+                )])
+                for mail in mail_tracking:
+                    if mail.recipient_address == event["email"]:
+                        mail.state = event["event"]
+
                 if self._event_is_from_sendgrid(event):
                     if not self._sendgrid_event_type_verify(event):
                         res = 'ERROR: Event type not supported'
