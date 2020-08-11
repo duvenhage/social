@@ -111,7 +111,7 @@ class MailMail(models.Model):
                     # invalidating state.
                     self.env.cr.commit()  # pylint: disable=invalid-commit
 
-                email._postprocess_sent_message(success_pids=[email.recipient_ids.ids])
+                email._postprocess_sent_message(success_pids=email.recipient_ids)
             else:
                 _logger.error("Failed to send email: {}".format(str(msg)))
                 email._postprocess_sent_message(
