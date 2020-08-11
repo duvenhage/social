@@ -137,6 +137,8 @@ class MailTrackingEmail(models.Model):
         is_json = hasattr(request, 'jsonrequest') and isinstance(
             request.jsonrequest, list)
         if res == 'NONE' and is_json:
+            _logger.info("Received sendgrid events: %s",
+                         str(request.httprequest.get_data()))
             for event in request.jsonrequest:
                 # We update mail tracking emails with sendgrid statuses
                 mail_tracking = self.env["mail.tracking.email"].search([(
