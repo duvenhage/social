@@ -111,11 +111,15 @@ class MailMail(models.Model):
                     # invalidating state.
                     self.env.cr.commit()  # pylint: disable=invalid-commit
 
-                email._postprocess_sent_message(success_pids=email.recipient_ids)
+                # Shows the red envelope while waiting for sendgrid's responses
+                email._postprocess_sent_message(success_pids=[])
             else:
                 _logger.error("Failed to send email: {}".format(str(msg)))
                 email._postprocess_sent_message(
-                    failure_type='SENDGRID', failure_reason=str(msg))
+                    success_pids=[],
+                    failure_type='SENDGRID',
+                    failure_reason=str(msg)
+                )
 
     def _prepare_sendgrid_data(self):
         """
