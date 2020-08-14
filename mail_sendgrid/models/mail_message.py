@@ -41,7 +41,8 @@ class MailMessage(models.Model):
             # We find all mails that were delivered by sendgrid
             delivery_ids = []
             for tracking in mail.mail_tracking_ids:
-                if tracking.state == "delivered" and tracking.partner_id:
+                if tracking.state in ["opened", "delivered"] and \
+                        tracking.partner_id:
                     delivery_ids.append(tracking.partner_id.id)
 
             # We update the list of people to resend and check if all

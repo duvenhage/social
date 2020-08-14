@@ -29,22 +29,37 @@ class MailTrackingEmail(models.Model):
 
     @property
     def _sendgrid_mandatory_fields(self):
-        return 'event', 'timestamp', 'odoo_id', 'odoo_db'
+        return "event", "timestamp", "odoo_id", "odoo_db"
 
     @property
     def _sendgrid_event_type_mapping(self):
         return {
             # Sendgrid event type: tracking event type
-            'bounce': 'hard_bounce',
-            'click': 'click',
-            'deferred': 'deferral',
-            'delivered': 'delivered',
-            'dropped': 'reject',
-            'group_unsubscribe': 'unsub',
-            'open': 'open',
-            'processed': 'sent',
-            'spamreport': 'spam',
-            'unsubscribe': 'unsub',
+            "bounce": "hard_bounce",
+            "click": "click",
+            "deferred": "deferral",
+            "delivered": "delivered",
+            "dropped": "reject",
+            "group_unsubscribe": "unsub",
+            "open": "open",
+            "processed": "sent",
+            "spamreport": "spam",
+            "unsubscribe": "unsub",
+        }
+
+    @property
+    def _sendgrid_to_state_mapping(self):
+        return {
+            # Sendgrid event type: tracking event type
+            "bounce": "bounced",
+            "deferred": "deferred",
+            "processed": "sent",
+            "delivered": "delivered",
+            "open": "opened",
+            "dropped": "rejected",
+            "spamreport": "spam",
+            "group_unsubscribe": "unsub",
+            "unsubscribe": "unsub",
         }
 
     def _sendgrid_event_type_verify(self, event):
@@ -130,6 +145,25 @@ class MailTrackingEmail(models.Model):
         event = event or {}
         return all([k in event for k in self._sendgrid_mandatory_fields])
 
+    def _track_sendgrid_event(self, event):
+        # We update mail tracking emails with sendgrid statuses
+        mail_tracking = self.env["mail.tracking.email"].search([(
+            "mail_message_id.message_id", "=", event["odoo_id"]
+        )])
+        mail_resend = self.env["mail.resend.message"].search([
+            ("mail_message_id.message_id", "=", event["odoo_id"]),
+        ])
+        for mail in mail_tracking:
+            if mail.recipient_address == event["email"]:
+                # Identity values are not present in map
+                state = self._sendgrid_to_state_mapping.get(event["event"])
+                if state in dict(mail._fields["state"].selection):
+                    mail.state = state
+                    for resend_partner in mail_resend.partner_ids:
+                        resend_partner.message = ""
+
+
+
     @api.model
     def event_process(self, request, post, metadata, event_type=None):
         res = super(MailTrackingEmail, self).event_process(
@@ -140,13 +174,7 @@ class MailTrackingEmail(models.Model):
             _logger.info("Received sendgrid events: %s",
                          str(request.httprequest.get_data()))
             for event in request.jsonrequest:
-                # We update mail tracking emails with sendgrid statuses
-                mail_tracking = self.env["mail.tracking.email"].search([(
-                    "mail_message_id.message_id", "=", event["odoo_id"]
-                )])
-                for mail in mail_tracking:
-                    if mail.recipient_address == event["email"]:
-                        mail.state = event["event"]
+                self._track_sendgrid_event(event)
 
                 if self._event_is_from_sendgrid(event):
                     if not self._sendgrid_event_type_verify(event):
