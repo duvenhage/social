@@ -96,7 +96,7 @@ class SendgridTemplate(models.Model):
             suffix = params.search([
                 ('key', '=', 'mail_sendgrid.substitution_suffix')
             ]) or '}'
-            pattern = prefix + r'(\S{1,50})' + suffix
+            pattern = prefix + r'\S{1,50}' + suffix
             return list(set(re.findall(pattern, self.html_content)))
         else:
             prefix = params.search([
