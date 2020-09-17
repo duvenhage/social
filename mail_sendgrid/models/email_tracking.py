@@ -171,7 +171,7 @@ class MailTrackingEmail(models.Model):
         is_json = hasattr(request, 'jsonrequest') and isinstance(
             request.jsonrequest, list)
         if res == 'NONE' and is_json:
-            _logger.info("Received sendgrid events: %s",
+            _logger.debug("Received sendgrid events: %s",
                          str(request.httprequest.get_data()))
             for event in request.jsonrequest:
                 self._track_sendgrid_event(event)
@@ -200,9 +200,9 @@ class MailTrackingEmail(models.Model):
                         res = 'ERROR: Tracking not found'
                 if res != 'NONE':
                     if event_type:
-                        _logger.info(
+                        _logger.debug(
                             "sendgrid: event '%s' process '%s'",
                             event_type, res)
                     else:
-                        _logger.info("sendgrid: event process '%s'", res)
+                        _logger.debug("sendgrid: event process '%s'", res)
         return res

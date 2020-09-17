@@ -16,7 +16,7 @@ try:
         Substitution, Mail, Header, From, To, Cc, Subject, MimeType, FileName, \
         FileContent, FileType, Disposition, TemplateId, ReplyTo
 except ImportError:
-    _logger.info("ImportError raised while loading module.")
+    _logger.warning("ImportError raised while loading module.")
     _logger.debug("ImportError details:", exc_info=True)
 
 STATUS_OK = 202
